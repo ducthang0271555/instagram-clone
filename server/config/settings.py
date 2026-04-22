@@ -12,8 +12,22 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
+
+SIMPLE_JWT = {
+    'SIGNING_KEY': os.getenv('JWT_SECRET_KEY'),
+    'ALGORITHM': 'HS256',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    
+    'ACCESS_TOKEN_LIFETIME': timedelta(
+        minutes=int(os.getenv('JWT_ACCESS_EXPIRY_MINUTES', 60))
+    ),
+    'REFRESH_TOKEN_LIFETIME': timedelta(
+        minutes=int(os.getenv('JWT_REFRESH_EXPIRY_MINUTES', 60))
+    ),
+}
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from .models import User, Follow
 
@@ -28,6 +29,20 @@ class VerifyOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(max_length=6)
 
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, email):
+        email = email.lower()
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("No user found with this email")
+        return email
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(min_length=6, write_only=True)
+
 class UserSerializer(serializers.ModelSerializer):
     followers_count = serializers.IntegerField(source="followers.count", read_only=True)
     following_count = serializers.IntegerField(source="following.count", read_only=True)
@@ -45,3 +60,10 @@ class UserSerializer(serializers.ModelSerializer):
                 follower=request.user, following=obj
             ).exists()
         return False
+
+class LoginSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        data['message'] = "Đăng nhập thành công"
+        data['username'] = self.user.username
+        return data
